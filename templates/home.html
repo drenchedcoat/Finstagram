@@ -1,0 +1,55 @@
+<html>
+<head>
+</head>
+<body>
+<form action="/post" method="POST">
+	<h1>Welcome {{username}}</h1> 
+	<!--input type="text" name = "blog" placeholder="post" required/> </br-->
+	<input type="text" name = "caption" placeholder="caption" required/> </br>
+	<input type="text" name = "filePath" placeholder="link" required/> </br>
+	<input type='hidden' name='allFollowers' value='0'>
+	<input type="checkbox" name="allFollowers" value="1"> Check to allow all followers to view<br>
+	
+	<!--CLOSE FRIENDS GROUP DROPDOWN MENU> </br-->
+	<select id="groupName" name = "groupName" >
+		{% for line in groups %}
+			<option value={{line.groupName}}> {{line.groupName}} </option>
+		{% endfor %}
+	</select>
+
+	<input type="submit" value = Post />
+</form>
+
+<style type="text/css">
+	table, th, td{
+		border: 1px solid black;
+	}
+</style>
+
+Here are your posts:
+
+<table>
+	<th>Time</th>
+	<th>Caption</th>
+	<th>User</th>
+	<th>Link</th>
+
+{% for line in posts %}
+	<tr>
+		<td>{{line.timestamp}}</td>
+		<td>{{line.caption}}</td>
+		<td>{{line.photoOwner}}</td>
+		<td><a href= "{{line.filePath}}">{{line.filePath}}</a></td>
+
+	</tr>
+{% endfor %}
+</table>
+
+<a href="/select_blogger">Select a blogger</a>
+<br>
+<a href="/logout">Logout</a>
+
+</body>
+
+
+</html>
