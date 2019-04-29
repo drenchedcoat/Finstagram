@@ -2,54 +2,163 @@
 <head>
 </head>
 <body>
+
+<h1>Welcome {{username}}</h1> 
+<a href="/logout">Logout</a>
+
+{% with messages = get_flashed_messages() %}
+     {% if messages %}
+        <ul>
+           {% for message in messages %}
+           <li>{{ message }}</li>
+           {% endfor %}
+        </ul>
+     {% endif %}
+  {% endwith %}
+
 <form action="/post" method="POST">
-	<h1>Welcome {{username}}</h1> 
-	<!--input type="text" name = "blog" placeholder="post" required/> </br-->
+    <center>
+
+	<br></br><hr></hr>
+	<h2>Add a new post:</h2>
 	<input type="text" name = "caption" placeholder="caption" required/> </br>
 	<input type="text" name = "filePath" placeholder="link" required/> </br>
-	<input type='hidden' name='allFollowers' value='0'>
-	<input type="checkbox" name="allFollowers" value="1"> Check to allow all followers to view<br>
-	
-	<!--CLOSE FRIENDS GROUP DROPDOWN MENU> </br-->
-	<select id="groupName" name = "groupName" >
+
+	<select id="groupName" name = "groupName">
 		{% for line in groups %}
-			<option value={{line.groupName}}> {{line.groupName}} </option>
+			<option value={{line.groupName}}> {{line.groupName}}</option>
 		{% endfor %}
 	</select>
 
-	<input type="submit" value = Post />
+	<br>
+    <input type='hidden' name='allFollowers' value='0'>
+	<input type="checkbox" name="allFollowers" value="1">
+	Check to allow all followers to view.
+	</br>
+	
+	<input type="submit" class="button" value="Post" /> </div>
+    {% if perror %}
+        <p class="error"><strong></strong> {{perror}}</p>
+    {% endif %}
+	
+	<br></br><hr></hr>
 </form>
 
-<style type="text/css">
-	table, th, td{
-		border: 1px solid black;
-	}
-</style>
 
-Here are your posts:
+<form action="/manageTags" method="POST">
+{% for tags in pending_tags %}
 
-<table>
-	<th>Time</th>
-	<th>Caption</th>
-	<th>User</th>
-	<th>Link</th>
+    <p>{{tags.username}} tagged you on content ID {{tags.photoID}}</p>
+    <select class="input" name="answer">
+        <option value="1" required>Approve</option>
+        <option value="0" required>Disapprove</option>
+    </select>
 
-{% for line in posts %}
-	<tr>
-		<td>{{line.timestamp}}</td>
-		<td>{{line.caption}}</td>
-		<td>{{line.photoOwner}}</td>
-		<td><a href= "{{line.filePath}}">{{line.filePath}}</a></td>
+    <input type="hidden" name=id value={{tags.photoID}} />
+    <input type="hidden" name=username value={{tags.username}} />
 
-	</tr>
+    <input type="submit" class="button" value="Submit" />
+    <br></br><hr></hr>
 {% endfor %}
-</table>
+</form>
 
-<a href="/select_blogger">Select a blogger</a>
-<br>
-<a href="/logout">Logout</a>
+<form action="/manageFollows" method="POST">
+{% for follow in pendingFollows %}
+
+    <p>{{follow.followerUsername}} sent you a friend request</p>
+    <select class="input" name="answer">
+        <option value="1" required>Approve</option>
+        <option value="0" required>Disapprove</option>
+    </select>
+
+    <input type="hidden" name=followerUsername value={{follow.followerUsername}} />
+
+    <input type="submit" class="button" value="Submit" />
+    <br></br><hr></hr>
+{% endfor %}
+</form>
+
+<!--ADD FRIEND TO GROUP-->
+<h2> Add a friend to an existing friend group</h2>
+<form action="/addFriendToGroupAuth" method="POST">
+    <input type="text" name = "fUsername" placeholder="username" required/> </br>
+    <input type="text" name = "closeFriendGroup" placeholder="closeFriendGroup" required/></br>
+    <input type="submit" value = Add />
+    {% if error %}
+         <strong></strong><b> {{error}}</b>
+    {% endif %}
+    <hr></hr>
+</form>
+
+
+<!--ADD FRIEND-->
+<h2> Add a new friend</h2>
+<form action="/addFriendAuth" method="POST">
+    <select id="person" name = "person">
+		{% for person in taggable %}
+			<option value={{person.username}}> {{person.username}}</option>
+		{% endfor %}
+	</select>
+    <input type="submit" value = Add />
+    {% if error %}
+         <strong></strong><b> {{error}}</b>
+    {% endif %}
+    <hr></hr>
+</form>
+
+
+
+<!--DISPLAYING ALL VISIBLE POSTS HERE-->
+{% for line in posts %}
+    <br>{{line.timestamp}}</br>
+    <br>{{line.caption}}</br>
+    <br><b>{{line.photoOwner}}</br></b>
+    <br><a href={{line.filePath}}>Click to view.</a></br>
+    <br></br>
+
+    <!--DISPLAYING ALL COMMENTS HERE-->
+    <br><b>Comments</b></br>
+    {% for comment in commentlist %}
+        {% if line.photoID == comment.photoID %}
+            <td><small><b>{{comment.username}}: </b></small></td>
+            <br><td><small>{{comment.commentText}}</small></td></br>
+            <td><small><small><small>{{comment.timestamp}}</small></small></small></td><br></br>
+        {% endif %}
+    {% endfor %}
+    <br></br>
+
+
+    <!--DISPLAYS ALL TAGGED PEOPLE-->
+    <br><b>Tags</b></td>
+    {% for tag in tagged %}
+        {% if line.photoID == tag.photoID and tag.acceptedTag == 1 %}
+            <br><small>@{{tag.username}} ({{tag.fname}} {{tag.lname}})</small></br>
+            {% if tagerror %}
+                <p class="error"><strong></strong> {{tagerror}}</p>
+            {% endif %}
+        {% endif %}
+    {% endfor %}
+    <br></br>
+
+    <!--DROPDOWN LIST FOR TAGGABLE PEOPLE-->
+    <form action="/tag" method="POST">
+        <select id="taggee" name = "taggee">
+        {% for tagging in taggable %}
+            <option value={{tagging.username}}> {{tagging.username}} </option>
+        {% endfor %}
+        </select>
+
+        <input type="submit" value="Tag" />
+        <input type="hidden" name = "photoID" value="{{line.photoID}}" />
+    </form>
+    </tr>
+    </article>
+
+    <br></br><hr></hr>
+
+
+{% endfor %}
+</center>
 
 </body>
-
-
 </html>
